@@ -14,6 +14,11 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import service.MusicService;
 
@@ -24,9 +29,12 @@ public class MainControlScreen extends FragmentActivity {
     private ViewPager viewPager;
     private ImageButton btnPlay;
     private ImageButton btnNext;
+    public SeekBar sbDuration;
     private ImageButton btnPrev;
+    private TextView tvDuration;
     private BRMusic brMusic;
     private IntentFilter filter;
+    private Utils utils;
 
 
     public static final String SC_CLICK_ITEM_LISTPLAY = "maincontrolscreen.action.click.item_listplay";
@@ -44,6 +52,7 @@ public class MainControlScreen extends FragmentActivity {
         btnPlay.setOnClickListener(listener);
         btnNext.setOnClickListener(listener);
         btnPrev.setOnClickListener(listener);
+        sbDuration.setOnSeekBarChangeListener(sbListener);
     }
 
     private void initFilter() {
@@ -52,6 +61,7 @@ public class MainControlScreen extends FragmentActivity {
         filter.addAction(MusicService.IM_PAUSE);
         filter.addAction(MusicService.IM_PLAYING);
         filter.addAction(MusicService.MUSIC_CHANGE);
+        filter.addAction(MusicService.START_SEEKBAR);
     }
 
     @Override
@@ -67,11 +77,13 @@ public class MainControlScreen extends FragmentActivity {
     }
 
     private void initView() {
+        tvDuration = (TextView) findViewById(R.id.tv_total_duration);
+        sbDuration = (SeekBar) findViewById(R.id.custom_sb);
         viewPager = (ViewPager) findViewById(R.id.vp_main_content);
         btnPlay = (ImageButton) findViewById(R.id.panel_control_element_btn_play);
         btnNext = (ImageButton) findViewById(R.id.panel_control_element_btn_next);
         btnPrev = (ImageButton) findViewById(panel_control_element_btn_previous);
-
+        utils = new Utils();
         FragmentManager fragmentManager = getSupportFragmentManager();
         //create Adapter for viewpager.
         final ViewPagerAdapter adapter = new ViewPagerAdapter(fragmentManager);
@@ -79,6 +91,22 @@ public class MainControlScreen extends FragmentActivity {
 
     }
 
+    SeekBar.OnSeekBarChangeListener sbListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            Log.d("Progress", seekBar.getProgress() + "");
+        }
+    };
     //Handle Event buttons are clicked.
     View.OnClickListener listener = new View.OnClickListener() {
         @Override
@@ -164,12 +192,41 @@ public class MainControlScreen extends FragmentActivity {
         public void onReceive(Context context, Intent intent) {
             Log.i(TAG, " : onReceive " + intent.getAction());
             switch (intent.getAction()) {
+                case MusicService.START_SEEKBAR :
+                    Log.i(TAG, " : onReceive : START_SEEKBAR");
+                    final int duration = intent.getIntExtra("Duration", 0);
+                    final int amoungToupdate = duration / 100;
+                    tvDuration.setText(utils.milisToTimer(duration));
+
+                    Timer mTimer = new Timer();
+                    mTimer.schedule(new TimerTask() {
+
+                        @Override
+                        public void run() {
+                            runOnUiThread(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    if (!(amoungToupdate * sbDuration.getProgress() >= duration)) {
+                                        int p = sbDuration.getProgress();
+                                        p += 1;
+                                        sbDuration.setProgress(p);
+                                    }
+                                }
+                            });
+                        }
+
+                        ;
+                    },0,amoungToupdate);
+
+                    break;
                 case MusicService.IM_PAUSE:
                     Log.i(TAG, " : onReceive : IM_PAUSE");
                     btnPlay.setImageResource(android.R.drawable.ic_media_play);
                     break;
                 case MusicService.IM_PLAYING:
                     Log.i(TAG, " : onReceive : IM_PLAYING");
+
                     btnPlay.setImageResource(android.R.drawable.ic_media_pause);
                     break;
                 case MusicService.MUSIC_CHANGE:
