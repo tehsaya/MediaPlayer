@@ -23,6 +23,17 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical">
+        <TextView android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:background="@null"
+            android:id="@+id/tv_total_duration"
+            />
+        <TextView android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:background="@null"
+            android:id="@+id/tv_current_position"
+            android:layout_gravity="center"
+            />
 
         <SeekBar
             android:id="@+id/custom_sb"
@@ -30,7 +41,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:max="100"
-            android:progress="20"
             android:progressDrawable="@drawable/bg_bar"
             android:thumb="@drawable/thumb_bar" />
     </LinearLayout>

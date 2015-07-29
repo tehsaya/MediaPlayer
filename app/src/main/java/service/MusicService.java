@@ -42,6 +42,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public static final String PREV_ACTION = "service.MusicService.action.prev";
     public static final String NEXT_ACTION = "service.MusicService.action.next";
     public static final String PLAY_ACTION = "service.MusicService.action.play";
+    public static final String START_SEEKBAR = "service.MusicService.action.start_seekbar";
 
     public static final int FOREGROUND_ID = 8893;
 
@@ -81,6 +82,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     private void startService() {
         Log.i(TAG, "Received StartForeground Intent");
+
         Intent notificationIntent = new Intent(this, MainControlScreen.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                 Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -169,6 +171,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
+
+        Intent intent = new Intent(START_SEEKBAR);
+        intent.putExtra("Duration",  mPlayer.getDuration());
+        sendBroadcast(intent);
+
     }
 
 
@@ -196,6 +203,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
             sendBr(IM_PAUSE);
+
 
         } else {
             sendBr(IM_PLAYING);
@@ -242,6 +250,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Log.i(TAG, "startSong :" + position);
         // Get song is chosen to play.
         Song song = mPlayList.get(position);
+        String duration = song.getDuration();
         if (mPlayer == null) {
             mPlayer = new MediaPlayer();
         }
@@ -252,6 +261,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
         mPlayer.prepareAsync();
         sendBr(IM_PLAYING);
+
     }
 
     /**
